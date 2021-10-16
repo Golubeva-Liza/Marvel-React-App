@@ -1,0 +1,10 @@
+main {
+   margin-top: 50px;
+   position: relative;
+   .bg-decoration {
+      position: absolute;
+      right: -174px;
+      bottom: -70px;
+      z-index: -1;
+  }
+}
