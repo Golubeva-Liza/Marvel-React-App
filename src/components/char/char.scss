@@ -27,6 +27,11 @@
            object-fit: cover;
            transform: translate(-15px, -15px);
        }
+       &_empty-img{
+         img{
+         object-fit: unset;
+         }
+       }
        &_selected {
            box-shadow: 0 5px 20px $main-color;
            transform: translateY(-8px);
