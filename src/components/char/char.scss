@@ -69,6 +69,11 @@
            height: 150px;
            object-fit: cover;
        }
+       &_empty-img{
+         img{
+         object-fit: unset;
+         }
+       }
    }
    &__btns {
        margin-top: 35px;
