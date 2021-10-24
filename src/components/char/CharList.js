@@ -8,19 +8,49 @@ import './char.scss';
 class CharList extends Component {
    state = {
       chars: [],//name, description, thumbnail, homepage, wiki
-      loading: true,
-      error: false
+      loading: true,//первичная загрузка
+      error: false,
+      newLoading: false,//доп загрузка персонажей по кнопке
+      offset: 150,
+      charEnded: false//если данные закончились, то убираем кнопку загрузки
    }
 
    marvelService = new MarvelService();
 
    
    componentDidMount(){
-      this.loadChars();
+      this.onRequest();//в первый раз вызовется без аргумента, по умолчанию там будет 150
    }
 
-   onCharLoaded = (chars) => {
-      this.setState({chars, loading: false});
+   onRequest = (offset) => {
+      this.onNewCharsLoading();
+      this.marvelService
+         .getAllCharacters(offset)
+         .then (this.onCharsLoaded)
+         .catch(this.onError);
+   }
+
+   onNewCharsLoading = () =>{
+      this.setState({
+         newLoading: true
+      });
+   }
+
+   onCharsLoaded = (newChars) => {
+      let ended = false;
+      if (newChars.length < 9) {
+         ended = true
+      }
+      //зависит от предыдущего state
+      this.setState(({offset, chars}) => (
+         {
+            chars: [...chars, ...newChars],//обновляем персонажей: берем старых и добавляем новых к нему
+            loading: false,
+            newLoading: false,
+            offset: offset + 9,
+            charEnded: ended
+         }
+      ));
    }
 
    onError = () => {
@@ -30,19 +60,27 @@ class CharList extends Component {
       })
    }
 
-   loadChars = () => {
-      this.setState({
-         loading: true
-      });
-      this.marvelService
-         .getAllCharacters()
-         .then (this.onCharLoaded)//если в then приходит аргумент и стоит ссылка на функцию (this.onCharLoaded), то аргумент автоматически туда передается
-         .catch(this.onError);
-   }
+   // onCharsLoading = () => {
+   //    this.setState({
+   //       loading: true
+   //    });
+   // }
+   
+
+   // loadChars = () => {
+   //    this.setState({
+   //       loading: true
+   //    });
+   //    this.marvelService
+   //       .getAllCharacters()
+   //       .then (this.onCharLoaded)//если в then приходит аргумент и стоит ссылка на функцию (this.onCharLoaded), то аргумент автоматически туда передается
+   //       .catch(this.onError);
+   // }
+
 
 
    render() {
-      const {chars, loading, error} = this.state;   
+      const {chars, loading, error, newLoading, offset, charEnded} = this.state;   
 
       const errorMessage = error ? <ErrorMessage/> : null;
       const spinner = loading ? <Spinner/> : null;
@@ -53,7 +91,11 @@ class CharList extends Component {
                {errorMessage}
                {spinner}
                {content}
-               <button className="button button__main button__long">
+               <button 
+                  className="button button__main button__long"
+                  disabled={newLoading}
+                  style={{'display': charEnded ? 'none' : 'block'}}
+                  onClick={() => this.onRequest(offset)}>
                   <div className="inner">load more</div>
                </button>
             </div>

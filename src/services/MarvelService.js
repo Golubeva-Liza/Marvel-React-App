@@ -3,6 +3,8 @@
 class MarvelService {
    _apiBase = 'https://gateway.marvel.com:443/v1/public/';
    _apiKey = 'apikey=89726f2c4d7b607d0908d5098be94492';
+   _defaultOffset = 150;
+   _defaultLimit = 9;
 
    getResourse = async (url) => {
       let res = await fetch(url)
@@ -14,8 +16,8 @@ class MarvelService {
       return await res.json();
    }
 
-   getAllCharacters = async () => {
-      const res = await this.getResourse(`${this._apiBase}characters?limit=9&offset=150&${this._apiKey}`);
+   getAllCharacters = async (offset = this._defaultOffset) => {
+      const res = await this.getResourse(`${this._apiBase}characters?limit=9&offset=${offset}&${this._apiKey}`);
       return res.data.results.map(this._transformCharacter);//?
    }
 
