@@ -1,4 +1,6 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
+
 import MarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/errorMessage';
@@ -10,7 +12,7 @@ class CharList extends Component {
       chars: [],//name, description, thumbnail, homepage, wiki
       loading: true,//первичная загрузка
       error: false,
-      newLoading: false,//доп загрузка персонажей по кнопке
+      newLoading: false,//ставит disabled кнопке, пока данные загружаются после клика на неё
       offset: 150,
       charEnded: false//если данные закончились, то убираем кнопку загрузки
    }
@@ -60,23 +62,17 @@ class CharList extends Component {
       })
    }
 
-   // onCharsLoading = () => {
-   //    this.setState({
-   //       loading: true
-   //    });
-   // }
-   
-
-   // loadChars = () => {
-   //    this.setState({
-   //       loading: true
-   //    });
-   //    this.marvelService
-   //       .getAllCharacters()
-   //       .then (this.onCharLoaded)//если в then приходит аргумент и стоит ссылка на функцию (this.onCharLoaded), то аргумент автоматически туда передается
-   //       .catch(this.onError);
-   // }
-
+   //для установки фокуса на выбранного персонажа
+   itemRefs = [];
+   setRef = (ref) => {
+      this.itemRefs.push(ref);
+   }
+   focusOnItem = (id) => {
+      console.log(this.itemRefs);
+      this.itemRefs.forEach(item => item.classList.remove('char__item_selected'));
+      this.itemRefs[id].classList.add('char__item_selected');
+      this.itemRefs[id].focus();
+   }
 
 
    render() {
@@ -84,7 +80,7 @@ class CharList extends Component {
 
       const errorMessage = error ? <ErrorMessage/> : null;
       const spinner = loading ? <Spinner/> : null;
-      const content = !(loading || error) ? <View chars={chars} onCharSelected={this.props.onCharSelected}/> : null;
+      const content = !(loading || error) ? <View chars={chars} onCharSelected={this.props.onCharSelected} setRef={this.setRef} focusOnItem={this.focusOnItem}/> : null;
 
       return (
             <div className="char__list">
@@ -104,8 +100,8 @@ class CharList extends Component {
 }
 
 // компоненты разбивают на логические и рендерящие(отображают интерфейс)
-const View = ({chars, onCharSelected}) => {
-   const elements = chars.map(item => {
+const View = ({chars, onCharSelected, setRef, focusOnItem}) => {
+   const elements = chars.map((item, i) => {
       const {name, thumbnail, id} = item;
       let imageClassList = 'char__item';
 
@@ -114,7 +110,22 @@ const View = ({chars, onCharSelected}) => {
       }
 
       return (
-         <li key={id} className={imageClassList} onClick={() => onCharSelected(id)}>
+         <li 
+            ref={setRef} 
+            key={id} 
+            tabIndex={0} 
+            className={imageClassList} 
+            onClick={() => {
+               onCharSelected(id);
+               focusOnItem(i);
+            }}
+            onKeyPress={(e) => {
+               if (e.key === ' ' || e.key === "Enter") {
+                  onCharSelected(id);
+                  focusOnItem(i);
+               }
+            }}
+         >
             <img src={thumbnail} alt={name}/>
             <div className="char__name">{name}</div>
          </li>
@@ -127,5 +138,9 @@ const View = ({chars, onCharSelected}) => {
          {elements}       
       </ul>
    )
+}
+
+CharList.propTypes = {
+   onCharSelected: PropTypes.func
 }
 export default CharList;

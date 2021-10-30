@@ -1,4 +1,6 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
+
 import MarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/errorMessage';
@@ -6,7 +8,7 @@ import ErrorMessage from '../errorMessage/errorMessage';
 import Skeleton from '../skeleton/Skeleton';
 import './char.scss';
 
-class CharList extends Component {
+class CharInfo extends Component {
    state = {
       char: null,//id, name, description, thumbnail, homepage, wiki
       loading: false,
@@ -134,5 +136,11 @@ const View = ({char}) => {
    )
 }
 
+CharInfo.propTypes = {
+   charId: PropTypes.number,//валидация, чем должно являться
+   //если не будет совпадать с типом, то в консоли выдаст предупреждение
+}
+//см документацию, там можно проверить с помощью PropTypes на наличие вообще пропса,
+//а также задание пропсов по умолчанию
 
-export default CharList;
+export default CharInfo;
