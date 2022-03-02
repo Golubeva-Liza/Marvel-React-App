@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import ReactDOM from 'react-dom';
 import {Container} from 'react-bootstrap';
 import './App.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -33,11 +34,29 @@ class Form extends Component {
    // focusFirstTI = () => {
    //    this.myRef.current.focus();
    // }
+   
+   state = {
+      advOpen: false
+   }
+
+   handleClick = () =>{
+      console.log('click');//повесим на форму, но будет срабатывать и на подсказке, не смотря на то, что в dom она находится вне формы
+      this.setState(({advOpen}) => ({
+         advOpen: !advOpen
+      }))
+   }
+   //появляется реклама через 3 секунды, как загрузилась форма
+   componentDidMount(){
+      setTimeout(this.handleClick, 3000)
+   }
+
+   //таким образом, появляение рекламы зависит от формы, при этом в дом находясь в вообще другом месте
+   
 
    render() {
       return (
          <Container>
-            <form className="w-50 border mt-5 p-3 m-auto">
+            <form onClick={this.handleClick} className="w-50 border mt-5 p-3 m-auto" style={{'overflow': 'hidden', 'position': 'relative'}}>
                <div className="mb-3">
                   <label htmlFor="exampleFormControlInput1" className="form-label">Email address</label>
                   {/* создана ссылка ref*/}
@@ -46,14 +65,48 @@ class Form extends Component {
                </div>
                <div className="mb-3">
                   <label htmlFor="exampleFormControlTextarea1" className="form-label">Example textarea</label>
-                  <textarea onClick={this.focusFirstTI} className="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                  <textarea className="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
                </div>
+               {
+                  this.state.advOpen ? 
+                     <Portal>
+                        <Msg/>
+                     </Portal> : null
+               }
+               
             </form>
          </Container>
       )
    }
 }
 
+//хотим отрендерить компонент в другом месте dom, при этом не нарушая структуру внутри react (где был прописан, там и останется)
+//создание портала
+const Portal = (props) => {
+   const node = document.createElement('div');
+   document.body.appendChild(node);//вне div class="root", куда мы рендерим все приложение (под ним)
+
+   return ReactDOM.createPortal(props.children, node);//что рендерим и куда
+}
+//props.children - те компоненты, которые будут внутри portal
+
+const Msg = () => {
+   return(
+      <div 
+         style={{'width': '500px', 
+                  'height': '150px', 
+                  'backgroundColor': 'red', 
+                  'position': 'absolute', 
+                  'right': '0', 
+                  'bottom': '0'}}>
+         Hello
+      </div>
+   )
+}
+
+
+
+//.........................................................
 //ref нельзя назначать на функциональные компоненты
 //выскочит ошибка, тк функциональные компоненты не создают экземпляров.
 // const TextInput = () => {

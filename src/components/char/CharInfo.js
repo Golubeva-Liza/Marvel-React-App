@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 import MarvelService from '../../services/MarvelService';
@@ -8,78 +8,58 @@ import ErrorMessage from '../errorMessage/errorMessage';
 import Skeleton from '../skeleton/Skeleton';
 import './char.scss';
 
-class CharInfo extends Component {
-   state = {
-      char: null,//id, name, description, thumbnail, homepage, wiki
-      loading: false,
-      error: false
+const CharInfo = (props) => {
+
+   const [char, setChar] = useState(null);//id, name, description, thumbnail, homepage, wiki
+   const [loading, setLoading] = useState(false);
+   const [error, setError] = useState(false);
+
+   const marvelService = new MarvelService();
+
+   useEffect(() => {
+      updateChar();
+   }, [props.charId])
+   //будет вызов обновления персонажа тогда, когда поменялся пришедший в пропсы id
+
+   const onCharLoaded = (newChar) => {
+      //не зависит от предыдущего значения
+      setChar(newChar);
+      setLoading(loading => false);
    }
 
-   marvelService = new MarvelService();
-
-   componentDidMount(){
-      this.updateChar();
+   const onError = () => {
+      setError(true);//тут не важно, что было раньше - произошла ошибка
+      setLoading(loading => false);
    }
 
-   onCharLoaded = (char) => {
-      this.setState({char, loading: false});//char: char
-   }
-
-   onError = () => {
-      this.setState({
-         loading: false,
-         error: true
-      })
-   }
-
-   //тк пользователь обновляет персонажа за пределами этого компонента, можем воспользоваться componentDidUpdate. в данном случае, оно сработает при изменении props
-   //то есть придет новый id персонажа
-   //3 аргумента - первый - предыдущие пропсы, второй - предыдущее состояние, третий применяется редко,
-   componentDidUpdate(prevProps, prevState){
-      //если не использовать prevProps и prevState, то вызывутся методы, которые опять вызовут render и эта функция зациклится
-      //и будет бесконечно вызываться. поэтому мы проверяем предыдущие пропсы и стейты
-      if (this.props.charId !== prevProps.charId){
-         //это также решает проблему, если пользователь будет много раз нажимать одного и того же персонажа - новые запросы уходить не будут
-         this.updateChar();
-      }
-   }
-
-   updateChar = () => {
-      const {charId} = this.props;
+   const updateChar = () => {
+      const {charId} = props;
       if (!charId){
          return;
       }
 
-      this.setState({
-         loading: true
-      });
+      setLoading(loading => true);
 
-      this.marvelService
+      marvelService
          .getCharacter(charId)
-         .then(this.onCharLoaded)
-         .catch(this.onError);
-      
-      // this.foo.bar = 'some';//ошибка, которую отлавливает предохранитель
+         .then(onCharLoaded)
+         .catch(onError);
    }
 
-   render() {
-      const {char, loading, error} = this.state;   
+   const skeleton = char || loading || error ? null: <Skeleton/>;
+   const errorMessage = error ? <ErrorMessage/> : null;
+   const spinner = loading ? <Spinner/> : null;
+   const content = !(loading || error || !char) ? <View char={char}/> : null;
+   //если нет загррузки и ошибки, но есть персонаж
 
-      const skeleton = char || loading || error ? null: <Skeleton/>;
-      const errorMessage = error ? <ErrorMessage/> : null;
-      const spinner = loading ? <Spinner/> : null;
-      const content = !(loading || error || !char) ? <View char={char}/> : null;
-      //если нет загррузки и ошибки, но есть персонаж
-
-      return (
-         <div className="char__info">
-            {skeleton}
-            {errorMessage}
-            {spinner}
-            {content}
-         </div>
-       )
-   }
+   return (
+      <div className="char__info">
+         {skeleton}
+         {errorMessage}
+         {spinner}
+         {content}
+      </div>
+      )
 }
 
 const View = ({char}) => {

@@ -1,84 +1,73 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import Spinner from '../spinner/Spinner';
 import MarvelService from '../../services/MarvelService';
 import './randomChar.scss';
 import mjolnir from '../../resourses/mjolnir.png';
 import ErrorMessage from '../errorMessage/errorMessage';
 
-class RandomChar extends Component {
-   state = {
-      char: {},//name, description, thumbnail, homepage, wiki
-      loading: true,
-      error: false
+const RandomChar = (props) => {
+
+   const [char, setChar] = useState({});//name, description, thumbnail, homepage, wiki
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState(false);
+
+   const marvelService = new MarvelService();
+
+   useEffect(() => {
+      updateChar();
+
+      const timerId = setInterval(updateChar, 60000);
+
+      return () => {
+         clearInterval(timerId)
+      }
+   }, [])
+
+   const onCharLoaded = (newChar) => {
+      setChar(char => newChar);
+      setLoading(loading => false);
    }
 
-   marvelService = new MarvelService();
-
-   componentDidMount(){
-      this.updateChar();
-      // this.timerId = setInterval(this.updateChar, 3000);
+   const onError = () => {
+      setError(true);
+      setLoading(loading => false);
    }
 
-   componentWillUnmount(){
-      // clearInterval(this.timerId);
-   }
+   const updateChar = () => {
+      setLoading(loading => true);
 
-   onCharLoaded = (char) => {
-      this.setState({char, loading: false});//char: char
-   }
-
-   onError = () => {
-      this.setState({
-         loading: false,
-         error: true
-      })
-   }
-
-   updateChar = () => {
-      this.setState({
-         loading: true
-      });
       const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000);
-      this.marvelService
+      marvelService
          .getCharacter(id)
-         .then (this.onCharLoaded)//если в then приходит аргумент и стоит ссылка на функцию (this.onCharLoaded), то аргумент автоматически туда передается
-         .catch(this.onError);
+         .then(onCharLoaded)//если в then приходит аргумент и стоит ссылка на функцию (this.onCharLoaded), то аргумент автоматически туда передается
+         .catch(onError);
       }
 
-   render(){
-      const {char, loading, error} = this.state
-      
-      // if (loading){
-      //    return <Spinner/>
-      // }
-      //дальше идти не будет
-      
-      const errorMessage = error ? <ErrorMessage/> : null;
-      const spinner = loading ? <Spinner/> : null;
-      const content = !(loading || error) ? <View char={char}/> : null;
-      
-      return (
-         <div className="randomchar">
-            {errorMessage}
-            {spinner}
-            {content}
-            {/* {loading ? <Spinner/> : <View char={char}/>} */}
-            <div className="randomchar__static">
-               <p className="randomchar__title">
-                  Random character for today!<br/>
-                  Do you want to get to know him better?
-               </p>
-               <p className="randomchar__title">
-                  Or choose another one
-               </p>
-               <button onClick={this.updateChar} className="button button__main">
-                  <div className="inner">try it</div>
-               </button>
-               <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/>
-            </div>
+   const errorMessage = error ? <ErrorMessage/> : null;
+   const spinner = loading ? <Spinner/> : null;
+   const content = !(loading || error) ? <View char={char}/> : null;
+   
+   return (
+      <div className="randomchar">
+         {errorMessage}
+         {spinner}
+         {content}
+         {/* {loading ? <Spinner/> : <View char={char}/>} */}
+         <div className="randomchar__static">
+            <p className="randomchar__title">
+               Random character for today!<br/>
+               Do you want to get to know him better?
+            </p>
+            <p className="randomchar__title">
+               Or choose another one
+            </p>
+            <button onClick={updateChar} className="button button__main">
+               <div className="inner">try it</div>
+            </button>
+            <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/>
          </div>
-      )
-   }
+      </div>
+   )
 }
 
 // компоненты разбивают на логические и рендерящие(отображают интерфейс)
