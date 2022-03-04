@@ -1,38 +1,33 @@
-import { useState } from 'react';
-
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+//Router - компонент, кот. оборачивает все ссылки и страницы (маршруты), по кот. будет переходить пользователб
 import Header from '../header/Header';
-import RandomChar from '../randomChar/RandomChar';
-import CharList from '../char/CharList';
-import CharInfo from '../char/CharInfo';
-import ErrorBoundary from '../errorBoundary/ErrorBoundary';
-
-import vision from '../../resourses/vision.png';
 import './App.scss';
 import './main.scss';
+import {MainPage, ComicsPage} from '../pages';
 
 const App = () => {
-
-   const [selectedChar, setCar] = useState(null);
-
-   const onCharSelected = (id) => {
-      setCar(id);
-   }
-
+   
    return ( 
-      <div className = "App" >
-         <Header />
-         <main>
-            <RandomChar/>
-            <div className="char__content">
-               <CharList onCharSelected={onCharSelected}/>
-               <ErrorBoundary>
-                  <CharInfo charId={selectedChar}/>
-               </ErrorBoundary>
-            </div>
-            
-            <img className="bg-decoration" src={vision} alt="vision"></img>
-         </main> 
-      </div>
+      //маршрутизатор для работы всех страниц и ссылок в пределах одного компонента
+      //switch нужен, тк пути проверяются не строго и слэш, означающий главную страницу, входит во всех другие ссылки
+      //но он тоже проверяет, есть ли такая часть в строке и выводит первый найденный путь: '/comics' - выведет '/'
+      //помимо switch нужно прописать exact - проверяет полное совпадение пути
+      <Router>
+         <div className = "App" >
+            <Header />
+            <main>
+               <Switch>
+                  <Route exact path='/'>
+                     <MainPage/>
+                  </Route>
+                  
+                  <Route exact path='/comics'>
+                     <ComicsPage/>
+                  </Route>
+               </Switch>
+            </main> 
+         </div>
+      </Router>
    )
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Spinner from '../spinner/Spinner';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import './randomChar.scss';
 import mjolnir from '../../resourses/mjolnir.png';
 import ErrorMessage from '../errorMessage/errorMessage';
@@ -8,10 +8,7 @@ import ErrorMessage from '../errorMessage/errorMessage';
 const RandomChar = (props) => {
 
    const [char, setChar] = useState({});//name, description, thumbnail, homepage, wiki
-   const [loading, setLoading] = useState(true);
-   const [error, setError] = useState(false);
-
-   const marvelService = new MarvelService();
+   const {loading, error, getCharacter, clearError} = useMarvelService();
 
    useEffect(() => {
       updateChar();
@@ -21,26 +18,17 @@ const RandomChar = (props) => {
       return () => {
          clearInterval(timerId)
       }
-   }, [])
+   }, []);
 
    const onCharLoaded = (newChar) => {
       setChar(char => newChar);
-      setLoading(loading => false);
-   }
-
-   const onError = () => {
-      setError(true);
-      setLoading(loading => false);
    }
 
    const updateChar = () => {
-      setLoading(loading => true);
-
+      clearError(); //если в прошлом запросе по рандомному персу выдало ошибку, то она очистится при нажатии кнопки try it
       const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000);
-      marvelService
-         .getCharacter(id)
-         .then(onCharLoaded)//если в then приходит аргумент и стоит ссылка на функцию (this.onCharLoaded), то аргумент автоматически туда передается
-         .catch(onError);
+      getCharacter(id)
+         .then(onCharLoaded);//если в then приходит аргумент и стоит ссылка на функцию (this.onCharLoaded), то аргумент автоматически туда передается
       }
 
    const errorMessage = error ? <ErrorMessage/> : null;

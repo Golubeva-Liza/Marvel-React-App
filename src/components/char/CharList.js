@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/errorMessage';
 
@@ -10,29 +10,21 @@ import './char.scss';
 const CharList = (props) => {
 
    const [chars, setChars] = useState([]);//name, description, thumbnail, homepage, wiki
-   const [loading, setLoading] = useState(true);//первичная загрузка
-   const [error, setError] = useState(false);
    const [newLoading, setNewLoading] = useState(false);//ставит disabled кнопке, пока данные загружаются после клика на неё
    const [offset, setOffset] = useState(150);
    const [charEnded, setCharEnded] = useState(false);//если данные закончились, то убираем кнопку загрузки
-
-   const marvelService = new MarvelService();
+   const {loading, error, getAllCharacters} = useMarvelService();
 
    //съимулировать componentDidMount поможет useEffect с пустым массивом зависимостей
    useEffect(() => {
-      onRequest();//в первый раз вызовется без аргумента, по умолчанию там будет 150
+      onRequest(offset, true);//в первый раз вызовется без аргумента, по умолчанию там будет 150
    }, [])
 
-   const onRequest = (offset) => {
-      onNewCharsLoading();
-      marvelService
-         .getAllCharacters(offset)
-         .then (onCharsLoaded)
-         .catch(onError);
-   }
-
-   const onNewCharsLoading = () =>{
-      setNewLoading(true);
+   const onRequest = (offset, initial) => {
+      //если initial = true, значит это первичная загрузка, если повторная
+      initial ? setNewLoading(false) : setNewLoading(true);
+      getAllCharacters(offset)
+         .then(onCharsLoaded);
    }
 
    const onCharsLoaded = (newChars) => {
@@ -41,15 +33,9 @@ const CharList = (props) => {
          ended = true
       }
       setChars(chars => [...chars, ...newChars]);//обновляем персонажей: берем старых и добавляем новых к нему
-      setLoading(loading => false);
       setNewLoading(newLoading => false);
       setOffset(offset => offset + 9);
       setCharEnded(charEnded => ended)
-   }
-
-   const onError = () => {
-      setError(true);//тут не важно, что было раньше - произошла ошибка
-      setLoading(loading => false);
    }
 
    //для установки фокуса на выбранного персонажа
@@ -103,14 +89,14 @@ const CharList = (props) => {
 
    const charItems = renderChars(chars);
    const errorMessage = error ? <ErrorMessage/> : null;
-   const spinner = loading ? <Spinner/> : null;
-   const content = !(loading || error) ? charItems : null;
+   const spinner = loading && !newLoading ? <Spinner/> : null;//идет загрузка, но не новых персонажей по кнопке load more
+   // const content = !(loading || error) ? charItems : null;//уже не нужна эта строчка
 
    return (
       <div className="char__list">
          {errorMessage}
          {spinner}
-         {content}
+         {charItems}
          <button 
             className="button button__main button__long"
             disabled={newLoading}

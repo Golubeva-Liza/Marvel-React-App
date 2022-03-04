@@ -5,7 +5,7 @@ export const useHttp = () => {
    const [loading, setLoading] = useState(false);//включается, когда идет запрос
    const [error, setError] = useState(null);//включается, когда запрос произошел с ошибкой
 
-   const request = useCallback(async (url, method = 'GET', body = null, headers = {'Content-Typpe': 'application/json'}) => {
+   const request = useCallback(async (url, method = 'GET', body = null, headers = {'Content-Type': 'application/json'}) => {
       
       //перед тем, как отправить запрос, вкл загрузку
       setLoading(true);

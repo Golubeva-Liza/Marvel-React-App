@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/errorMessage';
 
@@ -11,10 +11,7 @@ import './char.scss';
 const CharInfo = (props) => {
 
    const [char, setChar] = useState(null);//id, name, description, thumbnail, homepage, wiki
-   const [loading, setLoading] = useState(false);
-   const [error, setError] = useState(false);
-
-   const marvelService = new MarvelService();
+   const {loading, error, getCharacter, clearError} = useMarvelService();
 
    useEffect(() => {
       updateChar();
@@ -22,14 +19,7 @@ const CharInfo = (props) => {
    //будет вызов обновления персонажа тогда, когда поменялся пришедший в пропсы id
 
    const onCharLoaded = (newChar) => {
-      //не зависит от предыдущего значения
       setChar(newChar);
-      setLoading(loading => false);
-   }
-
-   const onError = () => {
-      setError(true);//тут не важно, что было раньше - произошла ошибка
-      setLoading(loading => false);
    }
 
    const updateChar = () => {
@@ -38,12 +28,10 @@ const CharInfo = (props) => {
          return;
       }
 
-      setLoading(loading => true);
+      clearError();
 
-      marvelService
-         .getCharacter(charId)
-         .then(onCharLoaded)
-         .catch(onError);
+      getCharacter(charId)
+         .then(onCharLoaded);
    }
 
    const skeleton = char || loading || error ? null: <Skeleton/>;
