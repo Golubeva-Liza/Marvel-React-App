@@ -1,8 +1,10 @@
-import './comicsList.scss';
+import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+
 import ErrorMessage from '../errorMessage/errorMessage';
 import Spinner from '../spinner/Spinner';
 import useMarvelService from '../../services/MarvelService';
+import './comicsList.scss';
 
 const ComicsList = () => {
 
@@ -43,33 +45,18 @@ const ComicsList = () => {
             imageClassList = `${imageClassList} comics__item_empty-img`;
          }
 
-         return (
-            // <li 
-            //    ref={el => itemRefs.current[i] = el} //в массив под номер i записывается el - тот элемент, на котором ref был вызван, то есть li (list-item)
-            //    key={id} 
-            //    tabIndex={0} 
-            //    className={imageClassList} 
-            //    onClick={() => {
-            //       props.onCharSelected(id);
-            //       focusOnItem(i);
-            //    }}
-            //    onKeyPress={(e) => {
-            //       if (e.key === ' ' || e.key === "Enter") {
-            //          props.onCharSelected(id);
-            //          focusOnItem(i);
-            //       }
-            //    }}
-           
+         return (           
             <li 
                className={imageClassList}
                key={id}
                tabIndex={0} 
             >
-               <a href={homepage}>
+               {/* динамическое формирование страниц комиксов */}
+               <Link to={`/comics/${id}`}>
                   <img src={thumbnail} alt={title} className="comics__item-img"/>
                   <div className="comics__item-name">{title}</div>
                   <div className="comics__item-price">{price}$</div>
-               </a>
+               </Link>
             </li>
          )
       });
